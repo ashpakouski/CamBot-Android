@@ -37,6 +37,8 @@ fun ConnectivityScreen(
         LocationPermissionCard(viewModel = viewModel)
         BluetoothConnectionCard(viewModel = viewModel)
         DeviceConnectionCard(viewModel = viewModel)
+//        Spacer(modifier = Modifier.fillMaxHeight())
+        ForwardButton(viewModel = viewModel)
     }
 }
 
@@ -200,5 +202,20 @@ fun StatusIndicator(isActive: Boolean) {
         Canvas(modifier = Modifier.size(15.dp), onDraw = {
             drawCircle(color = if (isActive) Color.Green else Color.Red, alpha = 0.8f)
         })
+    }
+}
+
+@Composable
+@ExperimentalPermissionsApi
+fun ForwardButton(viewModel: ConnectivityViewModel) {
+    Button(
+        onClick = {
+            viewModel.oneStepForward()
+        },
+        modifier = Modifier
+            .padding(16.dp, 0.dp, 16.dp, 16.dp)
+            .fillMaxWidth()
+    ) {
+        Text(text = "Move forward")
     }
 }

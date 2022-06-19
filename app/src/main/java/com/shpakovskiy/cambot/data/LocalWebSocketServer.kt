@@ -8,21 +8,34 @@ import java.lang.Exception
 import java.net.InetSocketAddress
 import java.util.*
 
-class LocalWebSocketServer(address: InetSocketAddress) : WebSocketServer(address) {
+interface MessageListener {
+    fun onTextMessageReceived(message: String)
+}
+
+class LocalWebSocketServer(
+    address: InetSocketAddress
+) : WebSocketServer(address) {
     companion object {
         private const val TAG = "WebSocketServer"
+        var shared: LocalWebSocketServer? = null
     }
 
-    override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
-        Log.d(TAG, "onOpen: ${conn?.remoteSocketAddress}")
-    }
+    var messageListener: MessageListener? = null
+    var isStarted = false
+
+    override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) = Unit
 
     override fun onStart() {
-        Log.d(TAG, "onStart")
+        shared = this
+        isStarted = true
     }
 
     override fun onMessage(conn: WebSocket?, message: String?) {
         Log.d(TAG, "onMessage: $message")
+
+        message?.let {
+            messageListener?.onTextMessageReceived(it)
+        }
     }
 
     override fun onError(conn: WebSocket?, ex: Exception?) {
@@ -31,5 +44,6 @@ class LocalWebSocketServer(address: InetSocketAddress) : WebSocketServer(address
 
     override fun onClose(conn: WebSocket?, code: Int, reason: String?, remote: Boolean) {
         Log.e(TAG, "onClose")
+        isStarted = false
     }
 }
