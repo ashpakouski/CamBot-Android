@@ -15,10 +15,15 @@ import android.util.Log
 import android.util.Size
 import android.view.Surface
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
-import kotlin.math.absoluteValue
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class CameraService : Service() {
+
+    @Inject
+    lateinit var webSocketServer: LocalWebSocketServer
 
     private var cameraManager: CameraManager? = null
     private var previewSize: Size? = null
@@ -31,26 +36,17 @@ class CameraService : Service() {
         private const val TAG = "CameraService"
     }
 
+    private var lastImage = System.currentTimeMillis()
+
     private val imageListener = ImageReader.OnImageAvailableListener { reader ->
         val img = reader?.acquireLatestImage()
 
-        // Log.d(TAG, "Got image: " + img?.width + " x " + img?.height + " Time: ${System.nanoTime()}")
-
-        //val image: Image = imageReader!!.acquireLatestImage()
-        if (System.nanoTime() % 10L == 0L) {
-            // Toast.makeText(App.context(), "Trying to take picture...", Toast.LENGTH_SHORT).show()
-            Log.d(TAG, "Trying to get picture...")
+        val thisImage = System.currentTimeMillis()
+        if (thisImage - lastImage > 100) {
+            lastImage = thisImage
 
             img?.let { image ->
                 Log.d(TAG, "New image: $image")
-
-                /*
-                val bmp = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
-                val ostream = ByteArrayOutputStream()
-                bmp.compress(Bitmap.CompressFormat.JPEG, 100, ostream)
-
-                LocalWebSocketServer.shared?.broadcast(ostream.toByteArray())
-                 */
 
                 val yuvToRgbConverter = YuvToRgbConverter(applicationContext)
                 val bmp = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
@@ -66,10 +62,12 @@ class CameraService : Service() {
                     rotateMatrix, false
                 )
 
-                val ostream = ByteArrayOutputStream()
-                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, ostream)
+                val outputStream = ByteArrayOutputStream()
+                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 25, outputStream)
+                rotatedBitmap.recycle()
 
-                LocalWebSocketServer.shared?.broadcast(ostream.toByteArray())
+                Log.d("TAG123", "Send image")
+                webSocketServer.broadcast(outputStream.toByteArray())
             }
         }
 
@@ -120,16 +118,11 @@ class CameraService : Service() {
     }
 
     private fun start() {
-        Log.d(TAG, "start")
-
-        initCam(320, 200)
-        //initCam(1, 1)
+        initCam()
     }
 
     @SuppressLint("MissingPermission")
-    private fun initCam(width: Int, height: Int) {
-        // Toast.makeText(App.context(), "initCam", Toast.LENGTH_SHORT).show()
-
+    private fun initCam() {
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
         var camId: String? = null
@@ -144,51 +137,23 @@ class CameraService : Service() {
         }
 
 
-        previewSize = chooseSupportedSize(camId!!, width, height)
+        previewSize = chooseSupportedSize(camId!!)
 
         cameraManager!!.openCamera(camId, stateCallback, null)
     }
 
-    private fun chooseSupportedSize(
-        camId: String,
-        textureViewWidth: Int,
-        textureViewHeight: Int
-    ): Size {
-
+    private fun chooseSupportedSize(camId: String): Size {
         val manager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
-        // Get all supported sizes for TextureView
         val characteristics = manager.getCameraCharacteristics(camId)
         val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
         val supportedSizes = map?.getOutputSizes(SurfaceTexture::class.java)
 
-        // We want to find something near the size of our TextureView
-        val texViewArea = textureViewWidth * textureViewHeight
-        val texViewAspect = textureViewWidth.toFloat() / textureViewHeight.toFloat()
-
-        val nearestToFurthestSz = supportedSizes?.sortedWith(compareBy(
-            // First find something with similar aspect
-            {
-                val aspect = if (it.width < it.height) it.width.toFloat() / it.height.toFloat()
-                else it.height.toFloat() / it.width.toFloat()
-                (aspect - texViewAspect).absoluteValue
-            },
-            // Also try to get similar resolution
-            {
-                (texViewArea - it.width * it.height).absoluteValue
-            }
-        ))
-
-        if (nearestToFurthestSz!!.isNotEmpty())
-            return nearestToFurthestSz[0]
-
-        //return Size(320, 200)
-        return Size(1, 1)
+        return supportedSizes?.get(supportedSizes.size / 2 - 2) ?: Size(1, 1)
     }
 
     private fun createCaptureSession() {
         try {
-            // Prepare surfaces we want to use in capture session
             val targetSurfaces = ArrayList<Surface>()
 
             // Prepare CaptureRequest that can be used with CameraCaptureSession
@@ -197,7 +162,7 @@ class CameraService : Service() {
 
                     // Configure target surface for background processing (ImageReader)
                     imageReader = ImageReader.newInstance(
-                        previewSize!!.width, previewSize!!.getHeight(),
+                        previewSize!!.width, previewSize!!.height,
                         ImageFormat.YUV_420_888, 2
                     )
                     imageReader!!.setOnImageAvailableListener(imageListener, null)
@@ -232,11 +197,9 @@ class CameraService : Service() {
 
                         captureSession = cameraCaptureSession
                         try {
-                            // Now we can start capturing
                             captureRequest = requestBuilder.build()
                             captureSession!!.setRepeatingRequest(
                                 captureRequest!!,
-//                                captureCallback,
                                 null,
                                 null
                             )

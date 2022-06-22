@@ -17,7 +17,6 @@ class LocalWebSocketServer(
 ) : WebSocketServer(address) {
     companion object {
         private const val TAG = "WebSocketServer"
-        var shared: LocalWebSocketServer? = null
     }
 
     var messageListener: MessageListener? = null
@@ -26,7 +25,6 @@ class LocalWebSocketServer(
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) = Unit
 
     override fun onStart() {
-        shared = this
         isStarted = true
     }
 

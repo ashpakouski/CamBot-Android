@@ -1,21 +1,33 @@
 package com.shpakovskiy.cambot.bluetooth
 
 import android.content.Context
+import androidx.hilt.work.HiltWorker
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.shpakovskiy.cambot.presentation.connectivity.ConnectivityViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import okio.IOException
 
 @ExperimentalPermissionsApi
-class BluetoothWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
+@HiltWorker
+class BluetoothWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val bluetoothConnector: BluetoothConnector
+) : Worker(context, params) {
 
     override fun doWork(): Result {
         val stringCommand = inputData.getString("command")
 
-        stringCommand?.let {
-            ConnectivityViewModel.bluetoothSocket?.outputStream?.write(it.toByteArray())
-        }
+        return try {
+            stringCommand?.let {
+                bluetoothConnector.send(it)
+            }
 
-        return Result.success()
+            Result.success()
+        } catch (e: IOException) {
+            Result.failure()
+        }
     }
 }

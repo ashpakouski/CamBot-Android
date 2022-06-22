@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -30,14 +29,12 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 @Composable
 @ExperimentalPermissionsApi
 fun ConnectivityScreen(
-    navController: NavController,
     viewModel: ConnectivityViewModel
 ) {
     Column {
         LocationPermissionCard(viewModel = viewModel)
         BluetoothConnectionCard(viewModel = viewModel)
         DeviceConnectionCard(viewModel = viewModel)
-//        Spacer(modifier = Modifier.fillMaxHeight())
         ForwardButton(viewModel = viewModel)
     }
 }
