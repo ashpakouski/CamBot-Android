@@ -28,9 +28,6 @@ class ConnectivityViewModel @Inject constructor(
     private val _bluetoothConnectionState = mutableStateOf(BluetoothConnectionState())
     val bluetoothConnectionState: State<BluetoothConnectionState> = _bluetoothConnectionState
 
-    // private val workManager = WorkManager.getInstance(application)
-
-
     init {
         startWebSocketServer()
     }
@@ -40,16 +37,18 @@ class ConnectivityViewModel @Inject constructor(
     }
 
     fun setBluetoothTurnedOn(isTurnedOn: Boolean, bluetoothAdapter: BluetoothAdapter) {
-        this.bluetoothConnector.bluetoothAdapter = bluetoothAdapter
-
         _bluetoothConnectionState.value = BluetoothConnectionState(
             isBluetoothTurnedOn = isTurnedOn,
             isBluetoothConnected = _bluetoothConnectionState.value.isBluetoothConnected
         )
 
         if (isTurnedOn && _permissionsState.value.allPermissionsGranted) {
-            // establishBluetoothConnection()
-            bluetoothConnector.establishConnection()
+            bluetoothConnector.connect(bluetoothAdapter) {
+                _bluetoothConnectionState.value = BluetoothConnectionState(
+                    isBluetoothTurnedOn = true,
+                    isBluetoothConnected = true
+                )
+            }
         }
     }
 

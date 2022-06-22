@@ -1,6 +1,8 @@
 package com.shpakovskiy.cambot.di
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.LinkProperties
 import androidx.work.WorkManager
 import com.shpakovskiy.cambot.bluetooth.BluetoothConnector
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
@@ -18,12 +20,18 @@ class AppModule {
 
     @Provides
     @Singleton
-    fun provideWebSocketServer(): LocalWebSocketServer {
-        val inetSocketAddress = InetSocketAddress("192.168.100.2", 9999)
-        val webSocketServer = LocalWebSocketServer(inetSocketAddress)
-        webSocketServer.isReuseAddr = true
-
-        return LocalWebSocketServer(address = inetSocketAddress)
+    fun provideWebSocketServer(@ApplicationContext context: Context): LocalWebSocketServer {
+        val connectivityManager = context.getSystemService(
+            Context.CONNECTIVITY_SERVICE
+        ) as ConnectivityManager
+        val linkProperties = connectivityManager.getLinkProperties(
+            connectivityManager.activeNetwork
+        ) as LinkProperties
+        val server = LocalWebSocketServer(
+            InetSocketAddress(linkProperties.linkAddresses.last().address, 9999)
+        )
+        server.isReuseAddr = true
+        return server
     }
 
     @Provides
