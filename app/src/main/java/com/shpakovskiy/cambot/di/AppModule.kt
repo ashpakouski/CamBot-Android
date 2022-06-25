@@ -3,6 +3,7 @@ package com.shpakovskiy.cambot.di
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.LinkProperties
+import android.util.Log
 import androidx.work.WorkManager
 import com.shpakovskiy.cambot.bluetooth.BluetoothConnector
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
@@ -27,6 +28,7 @@ class AppModule {
         val linkProperties = connectivityManager.getLinkProperties(
             connectivityManager.activeNetwork
         ) as LinkProperties
+        // Log.d("TAG123", "Address: ${linkProperties.linkAddresses.last().address}")
         val server = LocalWebSocketServer(
             InetSocketAddress(linkProperties.linkAddresses.last().address, 9999)
         )

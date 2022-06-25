@@ -5,8 +5,8 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
-import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.ImageReader
@@ -25,7 +25,6 @@ class CameraService : Service() {
     @Inject
     lateinit var webSocketServer: LocalWebSocketServer
 
-    private var cameraManager: CameraManager? = null
     private var previewSize: Size? = null
     private var cameraDevice: CameraDevice? = null
     private var captureRequest: CaptureRequest? = null
@@ -39,43 +38,36 @@ class CameraService : Service() {
     private var lastImage = System.currentTimeMillis()
 
     private val imageListener = ImageReader.OnImageAvailableListener { reader ->
-        val img = reader?.acquireLatestImage()
+        val latestImage = reader?.acquireLatestImage()
 
         val thisImage = System.currentTimeMillis()
-        if (thisImage - lastImage > 100) {
+        if (thisImage - lastImage > 80) {
             lastImage = thisImage
 
-            img?.let { image ->
-                Log.d(TAG, "New image: $image")
+            latestImage?.let { image ->
+                val imageBuffer = image.planes.first().buffer
+                val byteArray = ByteArray(imageBuffer.capacity())
+                imageBuffer.get(byteArray)
 
-                val yuvToRgbConverter = YuvToRgbConverter(applicationContext)
-                val bmp = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
-                yuvToRgbConverter.yuvToRgb(image, bmp)
-
-                val rotatedBitmap: Bitmap
-
-                val rotateMatrix = Matrix()
-                rotateMatrix.postRotate(/*rotation.toFloat()*/0.0F)
-                rotatedBitmap = Bitmap.createBitmap(
-                    bmp, 0, 0,
-                    bmp.width, bmp.height,
-                    rotateMatrix, false
+                val bmpOptions = BitmapFactory.Options()
+                val bmp = BitmapFactory.decodeByteArray(
+                    byteArray, 0, imageBuffer.capacity(), bmpOptions
                 )
 
                 val outputStream = ByteArrayOutputStream()
-                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 25, outputStream)
-                rotatedBitmap.recycle()
+                bmp.compress(Bitmap.CompressFormat.JPEG, 25, outputStream)
+                bmp.recycle()
 
-                Log.d("TAG123", "Send image")
                 webSocketServer.broadcast(outputStream.toByteArray())
+
+                image.close()
             }
         }
 
-        img?.close()
+        latestImage?.close()
     }
 
     private val stateCallback = object : CameraDevice.StateCallback() {
-
         override fun onOpened(currentCameraDevice: CameraDevice) {
             cameraDevice = currentCameraDevice
             createCaptureSession()
@@ -118,28 +110,22 @@ class CameraService : Service() {
     }
 
     private fun start() {
-        initCam()
+        initCamera()
     }
 
     @SuppressLint("MissingPermission")
-    private fun initCam() {
-        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+    private fun initCamera() {
+        val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
-        var camId: String? = null
-
-        for (id in cameraManager!!.cameraIdList) {
-            val characteristics = cameraManager!!.getCameraCharacteristics(id)
-            val facing = characteristics.get(CameraCharacteristics.LENS_FACING)
-            if (facing == CameraCharacteristics.LENS_FACING_BACK) {
-                camId = id
+        for (cameraId in cameraManager.cameraIdList) {
+            val characteristics = cameraManager.getCameraCharacteristics(cameraId)
+            val cameraFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
+            if (cameraFacing == CameraCharacteristics.LENS_FACING_BACK) {
+                previewSize = chooseSupportedSize(cameraId)
+                cameraManager.openCamera(cameraId, stateCallback, null)
                 break
             }
         }
-
-
-        previewSize = chooseSupportedSize(camId!!)
-
-        cameraManager!!.openCamera(camId, stateCallback, null)
     }
 
     private fun chooseSupportedSize(camId: String): Size {
@@ -149,21 +135,23 @@ class CameraService : Service() {
         val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
         val supportedSizes = map?.getOutputSizes(SurfaceTexture::class.java)
 
-        return supportedSizes?.get(supportedSizes.size / 2 - 2) ?: Size(1, 1)
+        Log.d(TAG, "Supported sizes: ${supportedSizes.contentToString()}")
+
+        return supportedSizes?.get(supportedSizes.size - 10) ?: Size(1, 1)
+//        return Size(1920, 1080)
     }
 
     private fun createCaptureSession() {
         try {
             val targetSurfaces = ArrayList<Surface>()
 
-            // Prepare CaptureRequest that can be used with CameraCaptureSession
             val requestBuilder =
                 cameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE).apply {
 
                     // Configure target surface for background processing (ImageReader)
                     imageReader = ImageReader.newInstance(
                         previewSize!!.width, previewSize!!.height,
-                        ImageFormat.YUV_420_888, 2
+                        ImageFormat.JPEG, 2
                     )
                     imageReader!!.setOnImageAvailableListener(imageListener, null)
 
@@ -182,7 +170,6 @@ class CameraService : Service() {
                     )
                 }
 
-            // Prepare CameraCaptureSession
             cameraDevice!!.createCaptureSession(
                 targetSurfaces,
                 object : CameraCaptureSession.StateCallback() {
