@@ -137,8 +137,8 @@ class CameraService : Service() {
 
         Log.d(TAG, "Supported sizes: ${supportedSizes.contentToString()}")
 
-        return supportedSizes?.get(supportedSizes.size - 10) ?: Size(1, 1)
-//        return Size(1920, 1080)
+        // return supportedSizes?.get(supportedSizes.size - 10) ?: Size(1, 1)
+        return Size(640, 480)
     }
 
     private fun createCaptureSession() {

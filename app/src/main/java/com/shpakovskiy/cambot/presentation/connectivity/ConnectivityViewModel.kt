@@ -8,11 +8,15 @@ import androidx.work.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.shpakovskiy.cambot.bluetooth.BluetoothConnector
 import com.shpakovskiy.cambot.bluetooth.BluetoothWorker
+import com.shpakovskiy.cambot.data.LocalWebServer
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
 import com.shpakovskiy.cambot.data.MessageListener
 import com.shpakovskiy.cambot.presentation.connectivity.state.BluetoothConnectionState
 import com.shpakovskiy.cambot.presentation.connectivity.state.PermissionsState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @ExperimentalPermissionsApi
@@ -20,7 +24,8 @@ import javax.inject.Inject
 class ConnectivityViewModel @Inject constructor(
     private val bluetoothConnector: BluetoothConnector,
     private val webSocketServer: LocalWebSocketServer,
-    private val workManager: WorkManager
+    private val workManager: WorkManager,
+    private val webServer: LocalWebServer
 ) : ViewModel() {
     private val _permissionsState = mutableStateOf(PermissionsState())
     val permissionsState: State<PermissionsState> = _permissionsState
@@ -68,6 +73,10 @@ class ConnectivityViewModel @Inject constructor(
             }
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            webServer.server.start(wait = true)
         }
     }
 

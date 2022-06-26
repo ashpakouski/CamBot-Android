@@ -41,8 +41,11 @@ android {
         kotlinCompilerExtensionVersion compose_version
     }
     packagingOptions {
+//        jniLibs {
+//            excludes += ['META-INF/*', 'META-INF/licenses/*']
+//        }
         resources {
-            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+            excludes += ['META-INF/*', 'META-INF/licenses/*', '**/attach_hotspot_windows.dll', '/META-INF/{AL2.0,LGPL2.1}']
         }
     }
 }
@@ -102,4 +105,10 @@ dependencies {
 
     // Kotlin + coroutines
     implementation "androidx.work:work-runtime-ktx:$work_version"
+
+    // Embedded Server
+    implementation 'io.ktor:ktor-server-core:1.6.4'
+    implementation 'io.ktor:ktor-gson:1.6.4'
+    implementation 'io.ktor:ktor-server-netty:1.6.2'
+    implementation 'io.ktor:ktor-websockets:1.6.2'
 }
