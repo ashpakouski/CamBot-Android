@@ -11,8 +11,7 @@ import com.shpakovskiy.cambot.bluetooth.BluetoothWorker
 import com.shpakovskiy.cambot.data.LocalWebServer
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
 import com.shpakovskiy.cambot.data.MessageListener
-import com.shpakovskiy.cambot.presentation.connectivity.state.BluetoothConnectionState
-import com.shpakovskiy.cambot.presentation.connectivity.state.PermissionsState
+import com.shpakovskiy.cambot.presentation.connectivity.state.ConnectionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,30 +26,29 @@ class ConnectivityViewModel @Inject constructor(
     private val workManager: WorkManager,
     private val webServer: LocalWebServer
 ) : ViewModel() {
-    private val _permissionsState = mutableStateOf(PermissionsState())
-    val permissionsState: State<PermissionsState> = _permissionsState
+    private val _state = mutableStateOf(ConnectionState())
+    val state: State<ConnectionState> = _state
 
-    private val _bluetoothConnectionState = mutableStateOf(BluetoothConnectionState())
-    val bluetoothConnectionState: State<BluetoothConnectionState> = _bluetoothConnectionState
-
+    /*
     init {
         startWebSocketServer()
     }
+     */
 
     fun setPermissionsState(allGranted: Boolean) {
-        _permissionsState.value = PermissionsState(allPermissionsGranted = allGranted)
+        _state.value = _state.value.copy(
+            requiredPermissionsGranted = allGranted
+        )
     }
 
     fun setBluetoothTurnedOn(isTurnedOn: Boolean, bluetoothAdapter: BluetoothAdapter) {
-        _bluetoothConnectionState.value = BluetoothConnectionState(
-            isBluetoothTurnedOn = isTurnedOn,
-            isBluetoothConnected = _bluetoothConnectionState.value.isBluetoothConnected
+        _state.value = _state.value.copy(
+            isBluetoothTurnedOn = isTurnedOn
         )
 
-        if (isTurnedOn && _permissionsState.value.allPermissionsGranted) {
+        if (isTurnedOn && _state.value.requiredPermissionsGranted) {
             bluetoothConnector.connect(bluetoothAdapter) {
-                _bluetoothConnectionState.value = BluetoothConnectionState(
-                    isBluetoothTurnedOn = true,
+                _state.value = _state.value.copy(
                     isBluetoothConnected = true
                 )
             }

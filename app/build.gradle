@@ -45,7 +45,8 @@ android {
 //            excludes += ['META-INF/*', 'META-INF/licenses/*']
 //        }
         resources {
-            excludes += ['META-INF/*', 'META-INF/licenses/*', '**/attach_hotspot_windows.dll', '/META-INF/{AL2.0,LGPL2.1}']
+            excludes += ['META-INF/*', 'META-INF/licenses/*',
+                         '**/attach_hotspot_windows.dll', '/META-INF/{AL2.0,LGPL2.1}']
         }
     }
 }

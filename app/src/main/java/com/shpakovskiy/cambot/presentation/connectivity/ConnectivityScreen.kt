@@ -76,10 +76,10 @@ fun LocationPermissionCard(viewModel: ConnectivityViewModel) {
             StatusRow(
                 //propertyName = "Required permissions (Location, Camera and Nearby devices access)",
                 propertyName = "Permissions",
-                isActive = viewModel.permissionsState.value.allPermissionsGranted
+                isActive = viewModel.state.value.requiredPermissionsGranted
             )
 
-            if (!viewModel.permissionsState.value.allPermissionsGranted) {
+            if (!viewModel.state.value.requiredPermissionsGranted) {
                 Button(
                     onClick = {
                         locationPermissionState.launchMultiplePermissionRequest()
@@ -127,10 +127,10 @@ fun BluetoothConnectionCard(viewModel: ConnectivityViewModel) {
         ) {
             StatusRow(
                 propertyName = "Bluetooth",
-                isActive = viewModel.bluetoothConnectionState.value.isBluetoothTurnedOn
+                isActive = viewModel.state.value.isBluetoothTurnedOn
             )
 
-            if (!viewModel.bluetoothConnectionState.value.isBluetoothTurnedOn) {
+            if (!viewModel.state.value.isBluetoothTurnedOn) {
                 Button(
                     onClick = {
                         launcher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
@@ -164,7 +164,7 @@ fun DeviceConnectionCard(viewModel: ConnectivityViewModel) {
         ) {
             StatusRow(
                 propertyName = "Robot connected",
-                isActive = viewModel.bluetoothConnectionState.value.isBluetoothConnected
+                isActive = viewModel.state.value.isBluetoothConnected
             )
         }
     }

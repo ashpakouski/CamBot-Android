@@ -2,11 +2,11 @@
 <html>
 
 <head>
-  <title>Camera Bot</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Camera Bot</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
+    <style>
     * {
       box-sizing: border-box;
     }
@@ -58,17 +58,18 @@
       height: 85%;
       /* object-fit: cover; */
     }
-  </style>
+
+    </style>
 </head>
 
 <body class="content">
-  <div class="topbar">
+<div class="topbar">
     <a class="logo">Camera Bot</a>
-  </div>
-  
-  <div class="centered-content match-parent">
+</div>
+
+<div class="centered-content match-parent">
     <img class="stream-frame" id="image-frame" src="image/frame-placeholder.png">
-  </div>
+</div>
 </body>
 
 <script>
@@ -108,8 +109,8 @@
   }, true);
 
   function setCurrentImage(image) {
-      // imageFrame.src = URL.createObjectURL(new Blob([image]));
+      imageFrame.src = URL.createObjectURL(new Blob([image]));
   }
-</script>
 
+</script>
 </html>
