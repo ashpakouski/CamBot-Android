@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        startService(Intent(this, CameraService::class.java))
+        // startService(Intent(this, CameraService::class.java))
 
         setContent {
             CamBotTheme {

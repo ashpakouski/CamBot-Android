@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -32,7 +33,7 @@ fun ConnectivityScreen(
     viewModel: ConnectivityViewModel
 ) {
     Column {
-        LocationPermissionCard(viewModel = viewModel)
+        PermissionsCard(viewModel = viewModel)
         BluetoothConnectionCard(viewModel = viewModel)
         DeviceConnectionCard(viewModel = viewModel)
         ForwardButton(viewModel = viewModel)
@@ -41,7 +42,7 @@ fun ConnectivityScreen(
 
 @Composable
 @ExperimentalPermissionsApi
-fun LocationPermissionCard(viewModel: ConnectivityViewModel) {
+fun PermissionsCard(viewModel: ConnectivityViewModel) {
     val locationPermissionState: MultiplePermissionsState = rememberMultiplePermissionsState(
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
             listOf(
@@ -74,8 +75,7 @@ fun LocationPermissionCard(viewModel: ConnectivityViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             StatusRow(
-                //propertyName = "Required permissions (Location, Camera and Nearby devices access)",
-                propertyName = "Permissions",
+                propertyName = "Required permissions",
                 isActive = viewModel.state.value.requiredPermissionsGranted
             )
 
@@ -102,13 +102,13 @@ fun BluetoothConnectionCard(viewModel: ConnectivityViewModel) {
     val bluetoothManager =
         LocalContext.current.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
 
-    viewModel.setBluetoothTurnedOn(bluetoothManager.adapter.isEnabled, bluetoothManager.adapter)
-
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
+        Log.d("TAG123", "Result: $it")
+
         viewModel.setBluetoothTurnedOn(
-            isTurnedOn = it.resultCode == Activity.RESULT_OK,
+            isTurnedOn = (it.resultCode == Activity.RESULT_OK),
             bluetoothAdapter = bluetoothManager.adapter
         )
     }
