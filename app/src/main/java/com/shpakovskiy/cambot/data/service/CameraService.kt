@@ -1,4 +1,4 @@
-package com.shpakovskiy.cambot.service
+package com.shpakovskiy.cambot.data.service
 
 import android.annotation.SuppressLint
 import android.app.Service
@@ -84,33 +84,20 @@ class CameraService : Service() {
         }
     }
 
-
     override fun onBind(p0: Intent?): IBinder? {
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand")
-
-        // grpcSetup()
-        start()
+        initCamera()
 
         return START_STICKY
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-        Log.d(TAG, "onCreate")
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
         stopCamera()
-    }
-
-    private fun start() {
-        initCamera()
     }
 
     @SuppressLint("MissingPermission")
@@ -135,9 +122,8 @@ class CameraService : Service() {
         val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
         val supportedSizes = map?.getOutputSizes(SurfaceTexture::class.java)
 
-        Log.d(TAG, "Supported sizes: ${supportedSizes.contentToString()}")
+        Log.d(TAG, "Supported camera resolutions: ${supportedSizes.contentToString()}")
 
-        // return supportedSizes?.get(supportedSizes.size - 10) ?: Size(1, 1)
         return Size(640, 480)
     }
 
@@ -180,8 +166,6 @@ class CameraService : Service() {
                             return
                         }
 
-                        //imageReader!!.acquireLatestImage()
-
                         captureSession = cameraCaptureSession
                         try {
                             captureRequest = requestBuilder.build()
@@ -216,7 +200,6 @@ class CameraService : Service() {
 
             imageReader?.close()
             imageReader = null
-
         } catch (e: Exception) {
             e.printStackTrace()
         }

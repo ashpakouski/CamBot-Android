@@ -31,7 +31,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.CameraService" />
+        <service android:name=".data.service.CameraService" />
         
         <provider
             android:authorities="${applicationId}.androidx-startup"
