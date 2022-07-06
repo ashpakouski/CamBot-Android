@@ -5,214 +5,101 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.shpakovskiy.cambot.common.ExecutionStatus
+import com.shpakovskiy.cambot.common.REQUIRED_PERMISSIONS
+import com.shpakovskiy.cambot.presentation.connectivity.component.ActionCard
 
 @Composable
 @ExperimentalPermissionsApi
+@ExperimentalFoundationApi
 fun ConnectivityScreen(
     viewModel: ConnectivityViewModel
 ) {
-    Column {
-        PermissionsCard(viewModel = viewModel)
-        BluetoothConnectionCard(viewModel = viewModel)
-        DeviceConnectionCard(viewModel = viewModel)
-        ForwardButton(viewModel = viewModel)
-    }
-}
-
-@Composable
-@ExperimentalPermissionsApi
-fun PermissionsCard(viewModel: ConnectivityViewModel) {
-    val locationPermissionState: MultiplePermissionsState = rememberMultiplePermissionsState(
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
-            listOf(
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                android.Manifest.permission.CAMERA
-            )
-        else
-            listOf(
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                android.Manifest.permission.CAMERA,
-                android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH_SCAN
-            )
+    val appPermissionsState: MultiplePermissionsState = rememberMultiplePermissionsState(
+        REQUIRED_PERMISSIONS
     )
 
-    viewModel.setPermissionsState(locationPermissionState.allPermissionsGranted)
+    viewModel.setPermissionsState(appPermissionsState.allPermissionsGranted)
 
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        backgroundColor = MaterialTheme.colors.surface,
-        elevation = 3.dp,
-        modifier = Modifier
-            .padding(12.dp)
-            .fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            StatusRow(
-                propertyName = "Required permissions",
-                isActive = viewModel.state.value.requiredPermissionsGranted
-            )
-
-            if (!viewModel.state.value.requiredPermissionsGranted) {
-                Button(
-                    onClick = {
-                        locationPermissionState.launchMultiplePermissionRequest()
-                    },
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(16.dp, 0.dp, 16.dp, 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text(text = "Grant permission")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-@ExperimentalPermissionsApi
-fun BluetoothConnectionCard(viewModel: ConnectivityViewModel) {
     val bluetoothManager =
         LocalContext.current.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+    val bluetoothAdapter = bluetoothManager.adapter
 
-    val launcher = rememberLauncherForActivityResult(
+    viewModel.setBluetoothTurnedOn(
+        isTurnedOn = bluetoothAdapter.isEnabled,
+        bluetoothAdapter = bluetoothAdapter
+    )
+
+    val bluetoothSwitcher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        Log.d("TAG123", "Result: $it")
-
         viewModel.setBluetoothTurnedOn(
             isTurnedOn = (it.resultCode == Activity.RESULT_OK),
             bluetoothAdapter = bluetoothManager.adapter
         )
     }
 
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        backgroundColor = MaterialTheme.colors.surface,
-        elevation = 3.dp,
-        modifier = Modifier
-            .padding(12.dp)
-            .fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            StatusRow(
-                propertyName = "Bluetooth",
-                isActive = viewModel.state.value.isBluetoothTurnedOn
-            )
-
-            if (!viewModel.state.value.isBluetoothTurnedOn) {
-                Button(
-                    onClick = {
-                        launcher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-                    },
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(16.dp, 0.dp, 16.dp, 16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text(text = "Turn on")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-@ExperimentalPermissionsApi
-fun DeviceConnectionCard(viewModel: ConnectivityViewModel) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        backgroundColor = MaterialTheme.colors.surface,
-        elevation = 3.dp,
-        modifier = Modifier
-            .padding(12.dp)
-            .fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            StatusRow(
-                propertyName = "Robot connected",
-                isActive = viewModel.state.value.isBluetoothConnected
-            )
-        }
-    }
-}
-
-@Composable
-fun StatusRow(propertyName: String, isActive: Boolean) {
-    Row(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = propertyName,
-            style = MaterialTheme.typography.h6,
-            overflow = TextOverflow.Ellipsis
+    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        ActionCard(
+            title = "Grant permissions",
+            description = "You have to grant all required permissions to let the app work properly",
+            onAction = {
+                appPermissionsState.launchMultiplePermissionRequest()
+            },
+            actionButtonLabel = "Grant",
+            executionStatus = if (appPermissionsState.allPermissionsGranted) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
         )
-        StatusIndicator(
-            isActive = isActive
+
+        ActionCard(
+            title = "Turn Bluetooth on",
+            description = "Bluetooth has to be turned on",
+            onAction = {
+                bluetoothSwitcher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+            },
+            actionButtonLabel = "Turn on",
+            executionStatus = if (viewModel.state.value.isBluetoothTurnedOn) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
         )
-    }
-}
 
-@Composable
-fun StatusIndicator(isActive: Boolean) {
-    Box(contentAlignment = Alignment.Center) {
-        Canvas(modifier = Modifier.size(25.dp), onDraw = {
-            drawCircle(color = if (isActive) Color.Green else Color.Red, alpha = 0.4f)
-        })
-        Canvas(modifier = Modifier.size(15.dp), onDraw = {
-            drawCircle(color = if (isActive) Color.Green else Color.Red, alpha = 0.8f)
-        })
-    }
-}
+        ActionCard(
+            title = "Connect to car",
+            description = "Establish bluetooth connection with on-car Bluetooth adapter",
+            onAction = {
+                viewModel.connectToRobot()
+            },
+            actionButtonLabel = "Connect",
+            executionStatus = if (viewModel.state.value.isBluetoothConnected) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
+        )
 
-@Composable
-@ExperimentalPermissionsApi
-fun ForwardButton(viewModel: ConnectivityViewModel) {
-    Button(
-        onClick = {
-            viewModel.oneStepForward()
-        },
-        modifier = Modifier
-            .padding(16.dp, 0.dp, 16.dp, 16.dp)
-            .fillMaxWidth()
-    ) {
-        Text(text = "Move forward")
+        ActionCard(
+            title = "Start WebSocket server",
+            description = "Embedded WebSocket server allows accepts commands sent from browser",
+            onAction = {
+                viewModel.connectToRobot()
+            },
+            actionButtonLabel = "Start server",
+            executionStatus = if (viewModel.state.value.isWebSocketServerRunning) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
+        )
+
+        ActionCard(
+            title = "Start embedded WebServer",
+            description = "Embedded WebServer allows user to access car control page as a website",
+            onAction = {
+                viewModel.connectToRobot()
+            },
+            actionButtonLabel = "Start server",
+            executionStatus = if (viewModel.state.value.isBluetoothConnected) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
+        )
     }
 }

@@ -1,6 +1,7 @@
 package com.shpakovskiy.cambot.presentation.connectivity
 
 import android.bluetooth.BluetoothAdapter
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -12,6 +13,7 @@ import com.shpakovskiy.cambot.data.LocalWebServer
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
 import com.shpakovskiy.cambot.data.MessageListener
 import com.shpakovskiy.cambot.presentation.connectivity.state.ConnectionState
+import com.shpakovskiy.cambot.presentation.connectivity.state.RobotConnectionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +30,8 @@ class ConnectivityViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = mutableStateOf(ConnectionState())
     val state: State<ConnectionState> = _state
+
+    private var bluetoothAdapter: BluetoothAdapter? = null
 
     /*
     init {
@@ -46,12 +50,30 @@ class ConnectivityViewModel @Inject constructor(
             isBluetoothTurnedOn = isTurnedOn
         )
 
-        if (isTurnedOn && _state.value.requiredPermissionsGranted) {
-            bluetoothConnector.connect(bluetoothAdapter) {
-                _state.value = _state.value.copy(
-                    isBluetoothConnected = true
-                )
-            }
+        this.bluetoothAdapter = bluetoothAdapter
+    }
+
+    fun connectToRobot() {
+        bluetoothAdapter?.let {
+            bluetoothConnector.connect(
+                it,
+                onConnected = {
+                    Log.d("TAG123", "Bluetooth connection succeeded")
+
+                    _state.value = _state.value.copy(
+                        isBluetoothConnected = true
+                        // robotConnectionState = RobotConnectionState.CONNECTED
+                    )
+                },
+                onConnectionFailed = {
+                    Log.d("TAG123", "Bluetooth connection failed")
+
+                    _state.value = _state.value.copy(
+                        isBluetoothConnected = false
+                        // robotConnectionState = RobotConnectionState.CONNECTION_FAILED
+                    )
+                }
+            )
         }
     }
 
