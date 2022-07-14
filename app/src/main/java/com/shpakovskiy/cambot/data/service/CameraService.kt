@@ -17,7 +17,9 @@ import android.view.Surface
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
+import java.util.*
 import javax.inject.Inject
+import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
 class CameraService : Service() {
@@ -137,7 +139,7 @@ class CameraService : Service() {
                     // Configure target surface for background processing (ImageReader)
                     imageReader = ImageReader.newInstance(
                         previewSize!!.width, previewSize!!.height,
-                        ImageFormat.JPEG, 2
+                        ImageFormat.JPEG, 20
                     )
                     imageReader!!.setOnImageAvailableListener(imageListener, null)
 
@@ -146,14 +148,14 @@ class CameraService : Service() {
                     addTarget(imageReader!!.surface)
 
                     // Set some additional parameters for the request
-                    set(
-                        CaptureRequest.CONTROL_AF_MODE,
-                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
-                    )
-                    set(
-                        CaptureRequest.CONTROL_AE_MODE,
-                        CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH
-                    )
+//                    set(
+//                        CaptureRequest.CONTROL_AF_MODE,
+//                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+//                    )
+//                    set(
+//                        CaptureRequest.CONTROL_AE_MODE,
+//                        CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH
+//                    )
                 }
 
             cameraDevice!!.createCaptureSession(

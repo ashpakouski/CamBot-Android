@@ -2,7 +2,8 @@ package com.shpakovskiy.cambot.common
 
 import android.os.Build
 
-const val LOCAL_WEB_SERVER_PORT = 9998
+const val WEB_SERVER_PORT = 9999
+const val SOCKET_SERVER_PORT = 9998
 
 val REQUIRED_PERMISSIONS = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
     listOf(

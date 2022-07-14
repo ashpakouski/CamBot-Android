@@ -11,7 +11,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -19,7 +22,12 @@ import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.shpakovskiy.cambot.common.ExecutionStatus
 import com.shpakovskiy.cambot.common.REQUIRED_PERMISSIONS
+import com.shpakovskiy.cambot.common.SOCKET_SERVER_PORT
+import com.shpakovskiy.cambot.common.WEB_SERVER_PORT
+import com.shpakovskiy.cambot.data.service.CameraService
 import com.shpakovskiy.cambot.presentation.connectivity.component.ActionCard
+import com.shpakovskiy.cambot.util.getDeviceIpAddress
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 @ExperimentalPermissionsApi
@@ -27,15 +35,18 @@ import com.shpakovskiy.cambot.presentation.connectivity.component.ActionCard
 fun ConnectivityScreen(
     viewModel: ConnectivityViewModel
 ) {
+    val context = LocalContext.current
+    val state = viewModel.state.value
+    val bluetoothManager =
+        LocalContext.current.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+    val bluetoothAdapter = bluetoothManager.adapter
+    val serverIpAddress = "${getDeviceIpAddress(context)}:$WEB_SERVER_PORT"
+
     val appPermissionsState: MultiplePermissionsState = rememberMultiplePermissionsState(
         REQUIRED_PERMISSIONS
     )
 
     viewModel.setPermissionsState(appPermissionsState.allPermissionsGranted)
-
-    val bluetoothManager =
-        LocalContext.current.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-    val bluetoothAdapter = bluetoothManager.adapter
 
     viewModel.setBluetoothTurnedOn(
         isTurnedOn = bluetoothAdapter.isEnabled,
@@ -49,6 +60,16 @@ fun ConnectivityScreen(
             isTurnedOn = (it.resultCode == Activity.RESULT_OK),
             bluetoothAdapter = bluetoothManager.adapter
         )
+    }
+
+    LaunchedEffect(key1 = true) {
+        viewModel.contextOwnerEvent.collectLatest { event ->
+            when (event) {
+                is ConnectivityViewModel.ContextOwnerEvent.StartCameraService -> {
+                    context.startService(Intent(context, CameraService::class.java))
+                }
+            }
+        }
     }
 
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -69,7 +90,7 @@ fun ConnectivityScreen(
                 bluetoothSwitcher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
             },
             actionButtonLabel = "Turn on",
-            executionStatus = if (viewModel.state.value.isBluetoothTurnedOn) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
+            executionStatus = if (state.isBluetoothTurnedOn) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
         )
 
         ActionCard(
@@ -79,27 +100,27 @@ fun ConnectivityScreen(
                 viewModel.connectToRobot()
             },
             actionButtonLabel = "Connect",
-            executionStatus = if (viewModel.state.value.isBluetoothConnected) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
+            executionStatus = if (state.isBluetoothConnected) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
         )
 
         ActionCard(
             title = "Start WebSocket server",
-            description = "Embedded WebSocket server allows accepts commands sent from browser",
-            onAction = {
-                viewModel.connectToRobot()
-            },
-            actionButtonLabel = "Start server",
-            executionStatus = if (viewModel.state.value.isWebSocketServerRunning) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
+            description = "Embedded WebSocket server will be started automatically, when the car is connected",
+//            onAction = {
+//                viewModel.connectToRobot()
+//            },
+//            actionButtonLabel = "Start server",
+            executionStatus = if (state.isWebSocketServerRunning) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
         )
 
         ActionCard(
-            title = "Start embedded WebServer",
-            description = "Embedded WebServer allows user to access car control page as a website",
-            onAction = {
-                viewModel.connectToRobot()
-            },
-            actionButtonLabel = "Start server",
-            executionStatus = if (viewModel.state.value.isBluetoothConnected) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
+            title = "Start embedded Web server",
+            description = "Embedded Web server will be started automatically, when the car is connected. Type the following address in browser to establish connection: $serverIpAddress",
+//            onAction = {
+//                viewModel.connectToRobot()
+//            },
+//            actionButtonLabel = "Start server",
+            executionStatus = if (state.isWebServerRunning) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
         )
     }
 }

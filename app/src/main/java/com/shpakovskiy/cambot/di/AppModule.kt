@@ -1,13 +1,13 @@
 package com.shpakovskiy.cambot.di
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.LinkProperties
-import android.util.Log
 import androidx.work.WorkManager
 import com.shpakovskiy.cambot.bluetooth.BluetoothConnector
+import com.shpakovskiy.cambot.common.SOCKET_SERVER_PORT
+import com.shpakovskiy.cambot.common.WEB_SERVER_PORT
 import com.shpakovskiy.cambot.data.LocalWebServer
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
+import com.shpakovskiy.cambot.util.getDeviceIpAddress
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,15 +29,8 @@ class AppModule {
     @Provides
     @Singleton
     fun provideWebSocketServer(@ApplicationContext context: Context): LocalWebSocketServer {
-        val connectivityManager = context.getSystemService(
-            Context.CONNECTIVITY_SERVICE
-        ) as ConnectivityManager
-        val linkProperties = connectivityManager.getLinkProperties(
-            connectivityManager.activeNetwork
-        ) as LinkProperties
-        Log.d("TAG123", "Address: ${linkProperties.linkAddresses.last().address}")
         val server = LocalWebSocketServer(
-            InetSocketAddress(linkProperties.linkAddresses.last().address, 9999)
+            InetSocketAddress(getDeviceIpAddress(context), SOCKET_SERVER_PORT)
         )
         server.isReuseAddr = true
         return server

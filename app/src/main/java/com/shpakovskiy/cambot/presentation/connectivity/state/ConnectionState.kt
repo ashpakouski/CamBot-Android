@@ -6,7 +6,7 @@ data class ConnectionState(
     val isBluetoothConnected: Boolean = false,
     val isWebSocketServerRunning: Boolean = false,
     val isWebSocketClientConnected: Boolean = false,
-    val isWebServerConnected: Boolean = false,
+    val isWebServerRunning: Boolean = false,
     val localIpAddress: String? = null
 )
 

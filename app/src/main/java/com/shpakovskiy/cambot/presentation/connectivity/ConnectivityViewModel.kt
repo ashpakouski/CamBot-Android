@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.work.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.shpakovskiy.cambot.bluetooth.BluetoothConnector
@@ -13,10 +14,12 @@ import com.shpakovskiy.cambot.data.LocalWebServer
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
 import com.shpakovskiy.cambot.data.MessageListener
 import com.shpakovskiy.cambot.presentation.connectivity.state.ConnectionState
-import com.shpakovskiy.cambot.presentation.connectivity.state.RobotConnectionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,13 +34,10 @@ class ConnectivityViewModel @Inject constructor(
     private val _state = mutableStateOf(ConnectionState())
     val state: State<ConnectionState> = _state
 
-    private var bluetoothAdapter: BluetoothAdapter? = null
+    private val _contextOwnerEvent = MutableSharedFlow<ContextOwnerEvent>()
+    val contextOwnerEvent = _contextOwnerEvent.asSharedFlow()
 
-    /*
-    init {
-        startWebSocketServer()
-    }
-     */
+    private var bluetoothAdapter: BluetoothAdapter? = null
 
     fun setPermissionsState(allGranted: Boolean) {
         _state.value = _state.value.copy(
@@ -64,6 +64,12 @@ class ConnectivityViewModel @Inject constructor(
                         isBluetoothConnected = true
                         // robotConnectionState = RobotConnectionState.CONNECTED
                     )
+
+                    viewModelScope.launch {
+                        _contextOwnerEvent.emit(ContextOwnerEvent.StartCameraService)
+                    }
+
+                    startWebSocketServer()
                 },
                 onConnectionFailed = {
                     Log.d("TAG123", "Bluetooth connection failed")
@@ -81,11 +87,7 @@ class ConnectivityViewModel @Inject constructor(
         try {
             webSocketServer.messageListener = object : MessageListener {
                 override fun onTextMessageReceived(message: String) {
-                    val thisTime = System.currentTimeMillis()
-                    if (thisTime - lastCommand > 100) {
-                        lastCommand = thisTime
-                        sendBluetoothCommand(message)
-                    }
+                    sendBluetoothCommand(message)
                 }
             }
             if (!webSocketServer.isStarted) {
@@ -95,20 +97,15 @@ class ConnectivityViewModel @Inject constructor(
             e.printStackTrace()
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch(Dispatchers.IO) {
             webServer.server.start(wait = true)
         }
-    }
 
-    fun oneStepForward() {
-        try {
-            bluetoothConnector.send("F")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        _state.value = _state.value.copy(
+            isWebSocketServerRunning = true,
+            isWebServerRunning = true
+        )
     }
-
-    private var lastCommand = 0L
 
     private fun sendBluetoothCommand(command: String) {
         var continuation = workManager.beginUniqueWork(
@@ -123,5 +120,9 @@ class ConnectivityViewModel @Inject constructor(
         workRequestBuilder.setInputData(builder.build())
         continuation = continuation.then(workRequestBuilder.build())
         continuation.enqueue()
+    }
+
+    sealed class ContextOwnerEvent {
+        object StartCameraService : ContextOwnerEvent()
     }
 }
