@@ -6,18 +6,14 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.shpakovskiy.cambot.bluetooth.BluetoothConnector
-import com.shpakovskiy.cambot.bluetooth.BluetoothWorker
 import com.shpakovskiy.cambot.data.LocalWebServer
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
 import com.shpakovskiy.cambot.data.MessageListener
 import com.shpakovskiy.cambot.presentation.connectivity.state.ConnectionState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -28,7 +24,7 @@ import javax.inject.Inject
 class ConnectivityViewModel @Inject constructor(
     private val bluetoothConnector: BluetoothConnector,
     private val webSocketServer: LocalWebSocketServer,
-    private val workManager: WorkManager,
+    // private val workManager: WorkManager,
     private val webServer: LocalWebServer
 ) : ViewModel() {
     private val _state = mutableStateOf(ConnectionState())
@@ -108,18 +104,18 @@ class ConnectivityViewModel @Inject constructor(
     }
 
     private fun sendBluetoothCommand(command: String) {
-        var continuation = workManager.beginUniqueWork(
-            "BluetoothWork",
-            ExistingWorkPolicy.REPLACE,
-            OneTimeWorkRequest.from(BluetoothWorker::class.java)
-        )
-
-        val workRequestBuilder = OneTimeWorkRequestBuilder<BluetoothWorker>()
-        val builder = Data.Builder()
-        builder.putString("command", command)
-        workRequestBuilder.setInputData(builder.build())
-        continuation = continuation.then(workRequestBuilder.build())
-        continuation.enqueue()
+//        var continuation = workManager.beginUniqueWork(
+//            "BluetoothWork",
+//            ExistingWorkPolicy.REPLACE,
+//            OneTimeWorkRequest.from(BluetoothWorker::class.java)
+//        )
+//
+//        val workRequestBuilder = OneTimeWorkRequestBuilder<BluetoothWorker>()
+//        val builder = Data.Builder()
+//        builder.putString("command", command)
+//        workRequestBuilder.setInputData(builder.build())
+//        continuation = continuation.then(workRequestBuilder.build())
+//        continuation.enqueue()
     }
 
     sealed class ContextOwnerEvent {

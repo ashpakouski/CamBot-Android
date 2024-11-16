@@ -11,7 +11,6 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.shpakovskiy.cambot.presentation.connectivity.ConnectivityScreen
 import com.shpakovskiy.cambot.presentation.ui.theme.CamBotTheme
@@ -34,9 +33,9 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colors.background
                     ) {
-                        ConnectivityScreen(
-                            viewModel = hiltViewModel()
-                        )
+//                        ConnectivityScreen(
+//                            viewModel = hiltViewModel()
+//                        )
                     }
                 }
             }
