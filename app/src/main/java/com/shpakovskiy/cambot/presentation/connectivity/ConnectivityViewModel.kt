@@ -6,7 +6,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.shpakovskiy.cambot.bluetooth.BluetoothConnector
 import com.shpakovskiy.cambot.data.LocalWebServer
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
@@ -19,7 +18,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@ExperimentalPermissionsApi
 @HiltViewModel
 class ConnectivityViewModel @Inject constructor(
     private val bluetoothConnector: BluetoothConnector,
@@ -81,14 +79,15 @@ class ConnectivityViewModel @Inject constructor(
 
     private fun startWebSocketServer() {
         try {
-            webSocketServer.messageListener = object : MessageListener {
-                override fun onTextMessageReceived(message: String) {
-                    sendBluetoothCommand(message)
-                }
-            }
-            if (!webSocketServer.isStarted) {
-                webSocketServer.start()
-            }
+//            webSocketServer.messageListener = object : MessageListener {
+//                override fun onTextMessageReceived(message: String) {
+//                    sendBluetoothCommand(message)
+//                }
+//            }
+//
+//            if (!webSocketServer.isStarted) {
+//                webSocketServer.start()
+//            }
         } catch (e: Exception) {
             e.printStackTrace()
         }

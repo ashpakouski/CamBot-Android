@@ -6,18 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.shpakovskiy.cambot.presentation.connectivity.ConnectivityScreen
 import com.shpakovskiy.cambot.presentation.ui.theme.CamBotTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @ExperimentalFoundationApi
-@ExperimentalPermissionsApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -27,11 +22,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             CamBotTheme {
                 Column {
-                    TopAppBar(title = { Text(text = "Camera Bot") })
+                    // TopAppBar(title = { Text(text = "Camera Bot") })
 
                     Surface(
                         modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colors.background
+                        color = MaterialTheme.colorScheme.background
                     ) {
 //                        ConnectivityScreen(
 //                            viewModel = hiltViewModel()

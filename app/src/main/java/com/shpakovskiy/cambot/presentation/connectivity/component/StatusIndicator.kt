@@ -2,8 +2,8 @@ package com.shpakovskiy.cambot.presentation.connectivity.component
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,7 +20,7 @@ fun StatusRow(propertyName: String, isActive: Boolean) {
     ) {
         Text(
             text = propertyName,
-            style = MaterialTheme.typography.h6,
+            //style = MaterialTheme.typography.h6,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1F)
         )

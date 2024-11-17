@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothSocket
 import android.util.Log
-import okio.IOException
+import java.io.IOException
 import java.util.*
 
 class BluetoothConnector {

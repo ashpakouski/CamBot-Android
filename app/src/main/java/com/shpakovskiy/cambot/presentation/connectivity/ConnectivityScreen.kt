@@ -11,18 +11,12 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.MultiplePermissionsState
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.shpakovskiy.cambot.common.ExecutionStatus
 import com.shpakovskiy.cambot.common.REQUIRED_PERMISSIONS
-import com.shpakovskiy.cambot.common.SOCKET_SERVER_PORT
 import com.shpakovskiy.cambot.common.WEB_SERVER_PORT
 import com.shpakovskiy.cambot.data.service.CameraService
 import com.shpakovskiy.cambot.presentation.connectivity.component.ActionCard
@@ -30,7 +24,6 @@ import com.shpakovskiy.cambot.util.getDeviceIpAddress
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-@ExperimentalPermissionsApi
 @ExperimentalFoundationApi
 fun ConnectivityScreen(
     viewModel: ConnectivityViewModel
@@ -42,11 +35,11 @@ fun ConnectivityScreen(
     val bluetoothAdapter = bluetoothManager.adapter
     val serverIpAddress = "${getDeviceIpAddress(context)}:$WEB_SERVER_PORT"
 
-    val appPermissionsState: MultiplePermissionsState = rememberMultiplePermissionsState(
-        REQUIRED_PERMISSIONS
-    )
+//    val appPermissionsState: MultiplePermissionsState = rememberMultiplePermissionsState(
+//        REQUIRED_PERMISSIONS
+//    )
 
-    viewModel.setPermissionsState(appPermissionsState.allPermissionsGranted)
+//    viewModel.setPermissionsState(appPermissionsState.allPermissionsGranted)
 
     viewModel.setBluetoothTurnedOn(
         isTurnedOn = bluetoothAdapter.isEnabled,
@@ -73,15 +66,15 @@ fun ConnectivityScreen(
     }
 
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        ActionCard(
-            title = "Grant permissions",
-            description = "You have to grant all required permissions to let the app work properly",
-            onAction = {
-                appPermissionsState.launchMultiplePermissionRequest()
-            },
-            actionButtonLabel = "Grant",
-            executionStatus = if (appPermissionsState.allPermissionsGranted) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
-        )
+//        ActionCard(
+//            title = "Grant permissions",
+//            description = "You have to grant all required permissions to let the app work properly",
+//            onAction = {
+//                appPermissionsState.launchMultiplePermissionRequest()
+//            },
+//            actionButtonLabel = "Grant",
+//            executionStatus = if (appPermissionsState.allPermissionsGranted) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
+//        )
 
         ActionCard(
             title = "Turn Bluetooth on",
