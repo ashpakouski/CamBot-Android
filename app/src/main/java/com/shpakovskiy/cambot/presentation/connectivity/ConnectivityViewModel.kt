@@ -7,12 +7,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shpakovskiy.cambot.bluetooth.BluetoothConnector
-import com.shpakovskiy.cambot.data.LocalWebServer
 import com.shpakovskiy.cambot.data.LocalWebSocketServer
-import com.shpakovskiy.cambot.data.MessageListener
 import com.shpakovskiy.cambot.presentation.connectivity.state.ConnectionState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -21,9 +18,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ConnectivityViewModel @Inject constructor(
     private val bluetoothConnector: BluetoothConnector,
-    private val webSocketServer: LocalWebSocketServer,
+    // private val webSocketServer: LocalWebSocketServer,
     // private val workManager: WorkManager,
-    private val webServer: LocalWebServer
+    // private val webServer: LocalWebServer
 ) : ViewModel() {
     private val _state = mutableStateOf(ConnectionState())
     val state: State<ConnectionState> = _state
@@ -92,9 +89,9 @@ class ConnectivityViewModel @Inject constructor(
             e.printStackTrace()
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
-            webServer.server.start(wait = true)
-        }
+//        viewModelScope.launch(Dispatchers.IO) {
+//            webServer.server.start(wait = true)
+//        }
 
         _state.value = _state.value.copy(
             isWebSocketServerRunning = true,

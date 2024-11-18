@@ -72,8 +72,13 @@ dependencies {
     implementation("org.java-websocket:Java-WebSocket:1.5.3")
 
     // Embedded Server
-    implementation("io.ktor:ktor-server-core:1.6.4")
-    implementation("io.ktor:ktor-gson:1.6.4")
-    implementation("io.ktor:ktor-server-netty:1.6.2")
-    implementation("io.ktor:ktor-websockets:1.6.2")
+    val ktorVersion = "3.0.1"
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-websockets:$ktorVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-websockets:$ktorVersion")
+    implementation("io.ktor:ktor-client-serialization:$ktorVersion")
 }
