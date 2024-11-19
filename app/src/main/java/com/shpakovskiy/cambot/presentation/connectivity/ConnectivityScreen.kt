@@ -16,20 +16,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.shpakovskiy.cambot.common.ExecutionStatus
-import com.shpakovskiy.cambot.common.REQUIRED_PERMISSIONS
 import com.shpakovskiy.cambot.common.WEB_SERVER_PORT
-import com.shpakovskiy.cambot.data.service.CameraService
 import com.shpakovskiy.cambot.presentation.connectivity.component.ActionCard
-import com.shpakovskiy.cambot.util.getDeviceIpAddress
+import com.shpakovskiy.cambot.data.util.getDeviceIpAddress
+import com.shpakovskiy.cambot.presentation.MainViewModel
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 @ExperimentalFoundationApi
 fun ConnectivityScreen(
-    viewModel: ConnectivityViewModel
+    viewModel: MainViewModel
 ) {
     val context = LocalContext.current
-    val state = viewModel.state.value
+//    val state = viewModel.state.value
     val bluetoothManager =
         LocalContext.current.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     val bluetoothAdapter = bluetoothManager.adapter
@@ -41,29 +40,29 @@ fun ConnectivityScreen(
 
 //    viewModel.setPermissionsState(appPermissionsState.allPermissionsGranted)
 
-    viewModel.setBluetoothTurnedOn(
-        isTurnedOn = bluetoothAdapter.isEnabled,
-        bluetoothAdapter = bluetoothAdapter
-    )
-
-    val bluetoothSwitcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) {
-        viewModel.setBluetoothTurnedOn(
-            isTurnedOn = (it.resultCode == Activity.RESULT_OK),
-            bluetoothAdapter = bluetoothManager.adapter
-        )
-    }
-
-    LaunchedEffect(key1 = true) {
-        viewModel.contextOwnerEvent.collectLatest { event ->
-            when (event) {
-                is ConnectivityViewModel.ContextOwnerEvent.StartCameraService -> {
-                    context.startService(Intent(context, CameraService::class.java))
-                }
-            }
-        }
-    }
+//    viewModel.setBluetoothTurnedOn(
+//        isTurnedOn = bluetoothAdapter.isEnabled,
+//        bluetoothAdapter = bluetoothAdapter
+//    )
+//
+//    val bluetoothSwitcher = rememberLauncherForActivityResult(
+//        ActivityResultContracts.StartActivityForResult()
+//    ) {
+//        viewModel.setBluetoothTurnedOn(
+//            isTurnedOn = (it.resultCode == Activity.RESULT_OK),
+//            bluetoothAdapter = bluetoothManager.adapter
+//        )
+//    }
+//
+//    LaunchedEffect(key1 = true) {
+//        viewModel.contextOwnerEvent.collectLatest { event ->
+//            when (event) {
+//                is MainViewModel.ContextOwnerEvent.StartCameraService -> {
+//                    // context.startService(Intent(context, CameraService::class.java))
+//                }
+//            }
+//        }
+//    }
 
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
 //        ActionCard(
@@ -76,6 +75,7 @@ fun ConnectivityScreen(
 //            executionStatus = if (appPermissionsState.allPermissionsGranted) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
 //        )
 
+        /*
         ActionCard(
             title = "Turn Bluetooth on",
             description = "Bluetooth has to be turned on",
@@ -115,5 +115,7 @@ fun ConnectivityScreen(
 //            actionButtonLabel = "Start server",
             executionStatus = if (state.isWebServerRunning) ExecutionStatus.FINISHED else ExecutionStatus.FAILED
         )
+
+         */
     }
 }

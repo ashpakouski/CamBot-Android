@@ -1,4 +1,4 @@
-package com.shpakovskiy.cambot.util
+package com.shpakovskiy.cambot.data.util
 
 import android.content.Context
 import android.net.ConnectivityManager

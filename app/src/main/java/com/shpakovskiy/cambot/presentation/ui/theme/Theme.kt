@@ -1,6 +1,7 @@
 package com.shpakovskiy.cambot.presentation.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -32,10 +33,10 @@ fun CamBotTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable
         LightColorPalette
     }
 
-//    MaterialTheme(
+    MaterialTheme(
 //        colors = colors,
 //        typography = Typography,
 //        shapes = Shapes,
-//        content = content
-//    )
+        content = content
+    )
 }
