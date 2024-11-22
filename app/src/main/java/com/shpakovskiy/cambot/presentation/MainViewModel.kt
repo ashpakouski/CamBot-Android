@@ -10,16 +10,22 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shpakovskiy.cambot.data.camera.CameraFrameFeedProvider
+import com.shpakovskiy.cambot.data.server.WebSocketServer
 import com.shpakovskiy.cambot.presentation.connectivity.state.ConnectionState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val cameraFeedProvider: CameraFrameFeedProvider
+    private val cameraFeedProvider: CameraFrameFeedProvider,
+    private val webSocketServer: WebSocketServer
     // private val bluetoothConnector: BluetoothConnector,
     // private val webSocketServer: LocalWebSocketServer,
     // private val workManager: WorkManager,
@@ -35,10 +41,29 @@ class MainViewModel @Inject constructor(
 
     var state by mutableStateOf<Bitmap?>(null)
 
+    private var lastBitmap: Bitmap? = null
+
     init {
         viewModelScope.launch {
+            webSocketServer.start(9998)
+        }
+
+        viewModelScope.launch {
+            delay(5000L)
+
             cameraFeedProvider.startCaptureSession().collect {
+                lastBitmap?.recycle()
+
                 state = it
+
+                val byteStream = ByteArrayOutputStream()
+                it.compress(Bitmap.CompressFormat.JPEG, 25, byteStream)
+
+                byteStream.use { stream ->
+                    webSocketServer.broadcastBinary(stream.toByteArray())
+                }
+
+                lastBitmap = it
             }
         }
     }

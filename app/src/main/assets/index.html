@@ -88,6 +88,14 @@
         }
     };
 
+     socket.onclose = function (event) {
+        alert("Closed :(")
+     }
+
+     socket.onerror = function (event) {
+        alert("Error :(")
+     }
+
     window.addEventListener("keydown", function (event) {
         switch (event.key) {
             case "ArrowDown":
